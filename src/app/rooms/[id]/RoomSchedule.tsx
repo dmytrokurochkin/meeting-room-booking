@@ -1,7 +1,7 @@
 "use client";
 
 import { DateTime } from "luxon";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { officeSlotStart, SLOTS_PER_DAY, startOfOfficeWeek } from "@/domain/schedule";
 import { SLOT_MINUTES, WORK_START_HOUR } from "@/domain/time";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +18,12 @@ type RoomScheduleProps = {
 
 export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
   const [weekOffset, setWeekOffset] = useState(0);
+  const [now, setNow] = useState(() => DateTime.now().setZone(officeTimeZone));
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(DateTime.now().setZone(officeTimeZone)), 60_000);
+    return () => clearInterval(timer);
+  }, [officeTimeZone]);
 
   const currentWeekStart = useMemo(
     () => startOfOfficeWeek(DateTime.now().setZone(officeTimeZone)),
@@ -51,6 +57,12 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
     }
     return map;
   }, [data, officeTimeZone]);
+
+  const nowRow = (now.hour * 60 + now.minute - WORK_START_HOUR * 60) / SLOT_MINUTES;
+  const nowInWeek = now >= weekStart && now < weekStart.plus({ days: 7 });
+  const showNowLine = nowInWeek && nowRow >= 0 && nowRow <= SLOTS_PER_DAY;
+  const nowSlotFloor = Math.floor(nowRow);
+  const nowSlotFraction = nowRow - nowSlotFloor;
 
   const weekEnd = weekStart.plus({ days: 6 });
   const weekLabel =
@@ -95,7 +107,9 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
           {days.map((day, dayIndex) => (
             <div
               key={day.toISODate()}
-              className="sticky top-0 z-10 border-b border-border bg-surface px-2 py-2 text-center text-sm font-medium text-foreground"
+              className={`sticky top-0 z-10 border-b border-border px-2 py-2 text-center text-sm font-medium ${
+                day.hasSame(now, "day") ? "bg-accent/10 text-accent" : "bg-surface text-foreground"
+              }`}
               style={{ gridColumn: dayIndex + 2, gridRow: 1 }}
             >
               {day.setLocale("uk").toFormat("EEE, d MMM")}
@@ -114,11 +128,11 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
             </div>
           ))}
 
-          {days.map((_, dayIndex) =>
+          {days.map((day, dayIndex) =>
             slotIndexes.map((slotIndex) => (
               <div
                 key={`cell-${dayIndex}-${slotIndex}`}
-                className="border-b border-border"
+                className={`border-b border-border ${day.hasSame(now, "day") ? "bg-accent/5" : ""}`}
                 style={{ gridColumn: dayIndex + 2, gridRow: slotIndex + 2 }}
               />
             )),
@@ -153,6 +167,21 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
                 </div>
               );
             }),
+          )}
+
+          {showNowLine && (
+            <div
+              className="pointer-events-none relative"
+              style={{ gridColumn: "2 / -1", gridRow: nowSlotFloor + 2 }}
+            >
+              <div
+                className="absolute inset-x-0 flex items-center"
+                style={{ top: `${nowSlotFraction * 100}%` }}
+              >
+                <span className="-ml-1 h-2 w-2 rounded-full bg-danger" />
+                <span className="h-px flex-1 bg-danger" />
+              </div>
+            </div>
           )}
         </div>
       </div>
