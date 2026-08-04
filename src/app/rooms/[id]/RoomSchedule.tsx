@@ -1,9 +1,10 @@
 "use client";
 
 import { DateTime } from "luxon";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { officeSlotStart, SLOTS_PER_DAY, startOfOfficeWeek } from "@/domain/schedule";
 import { SLOT_MINUTES, WORK_START_HOUR } from "@/domain/time";
+import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { useApi } from "@/lib/use-api";
 import type { BookingSlot, Room } from "@/shared/types";
@@ -16,9 +17,15 @@ type RoomScheduleProps = {
 };
 
 export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
-  const weekStart = useMemo(
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const currentWeekStart = useMemo(
     () => startOfOfficeWeek(DateTime.now().setZone(officeTimeZone)),
     [officeTimeZone],
+  );
+  const weekStart = useMemo(
+    () => currentWeekStart.plus({ weeks: weekOffset }),
+    [currentWeekStart, weekOffset],
   );
 
   const days = useMemo(
@@ -45,8 +52,31 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
     return map;
   }, [data, officeTimeZone]);
 
+  const weekEnd = weekStart.plus({ days: 6 });
+  const weekLabel =
+    weekStart.month === weekEnd.month
+      ? `${weekStart.toFormat("d")}–${weekEnd.toFormat("d MMMM yyyy", { locale: "uk" })}`
+      : `${weekStart.toFormat("d MMM", { locale: "uk" })} – ${weekEnd.toFormat("d MMM yyyy", { locale: "uk" })}`;
+
   return (
     <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setWeekOffset((value) => value - 1)}>
+            ← Попередній тиждень
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => setWeekOffset((value) => value + 1)}>
+            Наступний тиждень →
+          </Button>
+          {weekOffset !== 0 && (
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)}>
+              Сьогодні
+            </Button>
+          )}
+        </div>
+        <p className="text-sm font-medium text-foreground capitalize">{weekLabel}</p>
+      </div>
+
       {error && <ErrorBanner message={error.message} onRetry={() => mutate()} />}
       {isLoading && <p className="text-sm text-muted">Завантаження розкладу…</p>}
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
