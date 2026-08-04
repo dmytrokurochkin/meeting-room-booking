@@ -45,3 +45,5 @@ next-env.d.ts
 /PLAN.md
 /spec-uk-clean.md
 
+
+/src/generated/prisma
