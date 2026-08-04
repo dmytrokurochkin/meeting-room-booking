@@ -7,6 +7,7 @@ import { SLOT_MINUTES, WORK_START_HOUR } from "@/domain/time";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { useApi } from "@/lib/use-api";
+import { useUserTimeZone } from "@/hooks/useUserTimeZone";
 import type { BookingSlot, Room } from "@/shared/types";
 
 const SLOT_ROW_HEIGHT = 40;
@@ -17,6 +18,7 @@ type RoomScheduleProps = {
 };
 
 export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
+  const userTimeZone = useUserTimeZone();
   const [weekOffset, setWeekOffset] = useState(0);
   const [now, setNow] = useState(() => DateTime.now().setZone(officeTimeZone));
 
@@ -70,6 +72,8 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
       ? `${weekStart.toFormat("d")}–${weekEnd.toFormat("d MMMM yyyy", { locale: "uk" })}`
       : `${weekStart.toFormat("d MMM", { locale: "uk" })} – ${weekEnd.toFormat("d MMM yyyy", { locale: "uk" })}`;
 
+  const isForeignTimeZone = userTimeZone !== officeTimeZone;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -88,6 +92,12 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
         </div>
         <p className="text-sm font-medium text-foreground capitalize">{weekLabel}</p>
       </div>
+
+      {isForeignTimeZone && (
+        <p className="text-xs text-muted">
+          Час показано у вашому поясі ({userTimeZone}). Офіс працює 09:00–19:00 за {officeTimeZone}.
+        </p>
+      )}
 
       {error && <ErrorBanner message={error.message} onRetry={() => mutate()} />}
       {isLoading && <p className="text-sm text-muted">Завантаження розкладу…</p>}
@@ -123,7 +133,7 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
               style={{ gridColumn: 1, gridRow: slotIndex + 2 }}
             >
               {slotIndex % 2 === 0
-                ? officeSlotStart(weekStart, 0, slotIndex).toFormat("HH:mm")
+                ? officeSlotStart(weekStart, 0, slotIndex).setZone(userTimeZone).toFormat("HH:mm")
                 : ""}
             </div>
           ))}
