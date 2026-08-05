@@ -84,3 +84,11 @@ function isExclusionConstraintViolation(error: unknown): boolean {
     (error as { code?: string }).code === "23P01"
   );
 }
+
+export async function cancelBooking(userId: string, bookingId: string): Promise<void> {
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  if (!booking) throw new ApiError("NOT_FOUND", "Бронювання не знайдено.");
+  if (booking.userId !== userId) throw new ApiError("FORBIDDEN", "Це не ваше бронювання.");
+
+  await prisma.booking.delete({ where: { id: bookingId } });
+}
