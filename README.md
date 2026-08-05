@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Бронювання переговорних
 
-## Getting Started
+Веб-застосунок для бронювання переговорних кімнат в офісі: тижневий розклад по кімнатах, бронювання й скасування власних слотів, перегляд своїх бронювань.
 
-First, run the development server:
+## Стек
+
+- **Next.js 16** (App Router) + TypeScript — фронтенд і API-роути в одному проєкті
+- **PostgreSQL 16** + **Prisma 7** — база даних і доступ до неї
+- **Tailwind CSS 4** — стилі
+- **Vitest** — юніт-тести
+- **Luxon** — робота з часовими поясами
+- **Zod** — валідація вхідних даних (спільна для клієнта й сервера)
+
+## Запуск через Docker (рекомендовано)
+
+Потрібен лише встановлений Docker Desktop.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Застосунок підніметься на [http://localhost:3000](http://localhost:3000). Контейнер `app` сам застосує міграції та накотить сіди при старті.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Запуск локально
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Потрібні Node.js 20+ і локальний PostgreSQL (або Postgres, піднятий окремо через `docker compose up -d postgres`).
 
-## Learn More
+```bash
+cp .env.example .env       # за потреби відредагуйте DATABASE_URL
+npm install
+npm run db:migrate          # застосувати міграції
+npm run db:seed             # накотити сіди
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Застосунок буде доступний на [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Тестові користувачі
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Після сідів у базі є два акаунти (пароль однаковий для обох):
 
-## Deploy on Vercel
+| Email               | Пароль        |
+| ------------------- | ------------- |
+| `ivan@example.com`  | `password123` |
+| `olena@example.com` | `password123` |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Також створюється 5 переговорних кімнат і кілька демо-бронювань на найближчі дні.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Тести
+
+```bash
+npm test
+```
+
+Юніт-тести покривають логіку перетину інтервалів (`overlaps`), розрахунок робочих годин і слотів (`domain/time`) та валідацію запиту на бронювання (`domain/booking-rules`).
+
+## Як влаштована перевірка перетинів
+
+Два інтервали перетинаються, якщо `a.start < b.end && b.start < a.end` — строгі нерівності означають, що бронювання впритул (кінець одного збігається з початком іншого) не конфліктують. Той самий предикат використовується в SQL-запиті перед створенням бронювання (`startAt < newEnd AND endAt > newStart`), а на рівні бази даних діє `EXCLUDE USING gist` constraint на `(roomId, tstzrange(startAt, endAt, '[)'))` — навіть якщо два запити на бронювання одного слоту прийдуть одночасно, у базі гарантовано опиниться рівно один запис: другий вставлення поверне помилку `23P01`, яку сервіс перетворює на зрозумілу відповідь «Цей час уже заброньовано».
+
+## Як зберігається час
+
+Увесь час у базі — `timestamptz` в UTC. Офісний часовий пояс (`Europe/Kyiv` за замовчуванням, змінюється через `OFFICE_TIME_ZONE`) — єдине джерело правди для перевірки робочих годин: бронювання має початок і кінець в межах одного офісного дня між 09:00 і 19:00. Сітка розкладу будується в офісних слотах (09:00–19:00 за офісним часом, по 30 хвилин), а підписи часу над сіткою рендеряться в часовому поясі браузера користувача через `Intl.DateTimeFormat().resolvedOptions().timeZone`. Якщо пояс користувача відрізняється від офісного, над сіткою з'являється підказка з обома поясами.
+
+## Реалізовані бонусні пункти
+
+- Docker Compose, що піднімає Postgres і застосунок однією командою.
+- Захист від гонки на рівні бази даних (`EXCLUDE USING gist`, детальніше вище).
+- Фільтр кімнат за місткістю на сторінці списку кімнат.
+
+## Змінні середовища
+
+Див. `.env.example`. `OFFICE_TIME_ZONE` і `NOTIFY_BEFORE_MINUTES` мають розумні значення за замовчуванням і не обов'язкові для локального запуску.
