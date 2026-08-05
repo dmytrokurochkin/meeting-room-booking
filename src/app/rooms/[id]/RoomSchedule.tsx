@@ -161,7 +161,7 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
                   type="button"
                   disabled={isPast}
                   onClick={() => setSelectedSlot(slot.toJSDate())}
-                  aria-label={`Забронювати ${slot.toFormat("EEEE HH:mm", { locale: "uk" })}`}
+                  aria-label={`Забронювати ${slot.setZone(userTimeZone).toFormat("EEEE HH:mm", { locale: "uk" })}`}
                   className={`focus-ring m-0 h-full w-full appearance-none border-0 border-b border-border bg-transparent p-0 text-left ${
                     day.hasSame(now, "day") ? "bg-accent/5" : ""
                   } ${isPast ? "cursor-default" : "cursor-pointer hover:bg-accent/10"}`}
