@@ -10,7 +10,7 @@ type HeaderNavProps = {
 };
 
 function navLinkClass(active: boolean): string {
-  return `focus-ring rounded-md px-1 ${active ? "font-medium text-foreground" : "text-muted hover:text-foreground"}`;
+  return `focus-ring rounded-md px-1 whitespace-nowrap ${active ? "font-medium text-foreground" : "text-muted hover:text-foreground"}`;
 }
 
 export function HeaderNav({ user }: HeaderNavProps) {
@@ -45,12 +45,13 @@ export function HeaderNav({ user }: HeaderNavProps) {
   }
 
   return (
-    <nav className="flex items-center gap-4 text-sm">
+    <nav className="flex items-center gap-2 text-sm sm:gap-4">
       <Link href="/rooms" className={navLinkClass(pathname?.startsWith("/rooms") ?? false)}>
         Кімнати
       </Link>
       <Link href="/bookings" className={navLinkClass(pathname?.startsWith("/bookings") ?? false)}>
-        Мої бронювання
+        <span className="sm:hidden">Мої</span>
+        <span className="hidden sm:inline">Мої бронювання</span>
       </Link>
       <span className="hidden text-muted sm:inline">{user.name}</span>
       <Button variant="ghost" size="sm" loading={loggingOut} onClick={handleLogout}>
