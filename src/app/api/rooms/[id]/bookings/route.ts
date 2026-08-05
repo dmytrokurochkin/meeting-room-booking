@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiRoute } from "@/server/http";
+import { apiRoute, parseJsonBody } from "@/server/http";
 import { requireSessionUser } from "@/server/session";
-import { listRoomBookings } from "@/server/services/bookings.service";
+import { createBooking, listRoomBookings } from "@/server/services/bookings.service";
+import { createBookingSchema } from "@/shared/schemas";
 import type { BookingSlot } from "@/shared/types";
 
 const rangeSchema = z.object({
@@ -34,4 +35,24 @@ export const GET = apiRoute(async (request: Request, context: RouteContext) => {
   }));
 
   return NextResponse.json({ bookings: slots });
+});
+
+export const POST = apiRoute(async (request: Request, context: RouteContext) => {
+  const user = await requireSessionUser();
+  const { id: roomId } = await context.params;
+  const input = await parseJsonBody(request, createBookingSchema);
+
+  const booking = await createBooking(user.id, { roomId, ...input });
+
+  const slot: BookingSlot = {
+    id: booking.id,
+    roomId: booking.roomId,
+    title: booking.title,
+    startAt: booking.startAt.toISOString(),
+    endAt: booking.endAt.toISOString(),
+    authorName: booking.user.name,
+    isMine: true,
+  };
+
+  return NextResponse.json({ booking: slot }, { status: 201 });
 });

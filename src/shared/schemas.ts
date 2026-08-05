@@ -28,7 +28,6 @@ export const loginSchema = z.object({
 });
 
 export const createBookingSchema = z.object({
-  roomId: z.string().min(1, "Оберіть кімнату."),
   title: z
     .string()
     .trim()
