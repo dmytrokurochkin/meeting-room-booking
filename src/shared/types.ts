@@ -20,3 +20,12 @@ export type BookingSlot = {
   authorName: string;
   isMine: boolean;
 };
+
+export type MyBookingItem = {
+  id: string;
+  roomId: string;
+  roomName: string;
+  title: string;
+  startAt: string;
+  endAt: string;
+};

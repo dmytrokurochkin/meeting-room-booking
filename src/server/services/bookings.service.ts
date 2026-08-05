@@ -92,3 +92,23 @@ export async function cancelBooking(userId: string, bookingId: string): Promise<
 
   await prisma.booking.delete({ where: { id: bookingId } });
 }
+
+export type BookingScope = "upcoming" | "past";
+
+export function listMyBookings(
+  userId: string,
+  scope: BookingScope,
+  page: { skip: number; take: number },
+) {
+  const now = new Date();
+  return prisma.booking.findMany({
+    where: {
+      userId,
+      startAt: scope === "upcoming" ? { gte: now } : { lt: now },
+    },
+    include: { room: { select: { id: true, name: true } } },
+    orderBy: { startAt: scope === "upcoming" ? "asc" : "desc" },
+    skip: page.skip,
+    take: page.take,
+  });
+}
