@@ -44,11 +44,11 @@ function BookingRow({
       tabIndex={0}
       onClick={goToRoom}
       onKeyDown={handleKeyDown}
-      className="focus-ring flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border bg-surface px-4 py-3 hover:border-accent"
+      className="focus-ring flex cursor-pointer flex-col items-start gap-2 rounded-lg border border-border bg-surface px-4 py-3 hover:border-accent sm:flex-row sm:items-center sm:justify-between sm:gap-4"
     >
       <div className="flex min-w-0 flex-col gap-0.5">
-        <p className="truncate text-sm font-medium text-foreground">{booking.title}</p>
-        <p className="truncate text-sm text-muted">
+        <p className="text-sm font-medium text-foreground">{booking.title}</p>
+        <p className="text-sm text-muted">
           {start.setLocale("uk").toFormat("EEEE, d MMMM · HH:mm")}–{end.toFormat("HH:mm")} ·{" "}
           {booking.roomName}
         </p>
@@ -57,6 +57,7 @@ function BookingRow({
         <Button
           variant="secondary"
           size="sm"
+          className="shrink-0"
           onClick={(event) => {
             event.stopPropagation();
             onCancel();
