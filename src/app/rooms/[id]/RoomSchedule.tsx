@@ -6,6 +6,7 @@ import { officeSlotStart, SLOTS_PER_DAY, startOfOfficeWeek } from "@/domain/sche
 import { SLOT_MINUTES, WORK_START_HOUR } from "@/domain/time";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { BookingDialog } from "@/components/booking/BookingDialog";
 import { useApi } from "@/lib/use-api";
 import { useUserTimeZone } from "@/hooks/useUserTimeZone";
 import type { BookingSlot, Room } from "@/shared/types";
@@ -21,6 +22,7 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
   const userTimeZone = useUserTimeZone();
   const [weekOffset, setWeekOffset] = useState(0);
   const [now, setNow] = useState(() => DateTime.now().setZone(officeTimeZone));
+  const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(DateTime.now().setZone(officeTimeZone)), 60_000);
@@ -139,13 +141,24 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
           ))}
 
           {days.map((day, dayIndex) =>
-            slotIndexes.map((slotIndex) => (
-              <div
-                key={`cell-${dayIndex}-${slotIndex}`}
-                className={`border-b border-border ${day.hasSame(now, "day") ? "bg-accent/5" : ""}`}
-                style={{ gridColumn: dayIndex + 2, gridRow: slotIndex + 2 }}
-              />
-            )),
+            slotIndexes.map((slotIndex) => {
+              const slot = officeSlotStart(weekStart, dayIndex, slotIndex);
+              const isPast = slot <= now;
+
+              return (
+                <button
+                  key={`cell-${dayIndex}-${slotIndex}`}
+                  type="button"
+                  disabled={isPast}
+                  onClick={() => setSelectedSlot(slot.toJSDate())}
+                  aria-label={`Забронювати ${slot.toFormat("EEEE HH:mm", { locale: "uk" })}`}
+                  className={`focus-ring m-0 h-full w-full appearance-none border-0 border-b border-border bg-transparent p-0 text-left ${
+                    day.hasSame(now, "day") ? "bg-accent/5" : ""
+                  } ${isPast ? "cursor-default" : "cursor-pointer hover:bg-accent/10"}`}
+                  style={{ gridColumn: dayIndex + 2, gridRow: slotIndex + 2 }}
+                />
+              );
+            }),
           )}
 
           {days.map((day, dayIndex) =>
@@ -195,6 +208,16 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
           )}
         </div>
       </div>
+
+      <BookingDialog
+        key={selectedSlot?.toISOString() ?? "closed"}
+        open={selectedSlot !== null}
+        onClose={() => setSelectedSlot(null)}
+        roomId={room.id}
+        slotStart={selectedSlot}
+        officeTimeZone={officeTimeZone}
+        onCreated={() => mutate()}
+      />
     </div>
   );
 }
