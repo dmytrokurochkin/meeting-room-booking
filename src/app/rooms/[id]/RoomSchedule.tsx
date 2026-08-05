@@ -7,6 +7,7 @@ import { SLOT_MINUTES, WORK_START_HOUR } from "@/domain/time";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { BookingDialog } from "@/components/booking/BookingDialog";
+import { CancelBookingDialog } from "@/components/booking/CancelBookingDialog";
 import { useApi } from "@/lib/use-api";
 import { useUserTimeZone } from "@/hooks/useUserTimeZone";
 import type { BookingSlot, Room } from "@/shared/types";
@@ -23,6 +24,7 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [now, setNow] = useState(() => DateTime.now().setZone(officeTimeZone));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<BookingSlot | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(DateTime.now().setZone(officeTimeZone)), 60_000);
@@ -174,20 +176,23 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
               );
 
               return (
-                <div
+                <button
                   key={booking.id}
+                  type="button"
+                  disabled={!booking.isMine}
+                  onClick={() => setCancelTarget(booking)}
                   style={{ gridColumn: dayIndex + 2, gridRow: `${startRow + 2} / span ${span}` }}
-                  className={`m-0.5 overflow-hidden rounded-md px-2 py-1 text-left text-xs ${
+                  className={`focus-ring m-0.5 overflow-hidden rounded-md border px-2 py-1 text-left text-xs ${
                     booking.isMine
-                      ? "bg-accent text-accent-foreground"
-                      : "border border-border bg-background text-foreground"
+                      ? "cursor-pointer border-transparent bg-accent text-accent-foreground hover:opacity-90"
+                      : "cursor-default border-border bg-background text-foreground"
                   }`}
                 >
                   <p className="truncate font-medium">{booking.title}</p>
                   <p className="truncate opacity-80">
                     {booking.isMine ? "Ви" : booking.authorName}
                   </p>
-                </div>
+                </button>
               );
             }),
           )}
@@ -217,6 +222,13 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
         slotStart={selectedSlot}
         officeTimeZone={officeTimeZone}
         onCreated={() => mutate()}
+      />
+
+      <CancelBookingDialog
+        booking={cancelTarget}
+        timeZone={userTimeZone}
+        onClose={() => setCancelTarget(null)}
+        onCancelled={() => mutate()}
       />
     </div>
   );
