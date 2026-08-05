@@ -17,11 +17,23 @@ const SLOT_ROW_HEIGHT = 40;
 type RoomScheduleProps = {
   room: Room;
   officeTimeZone: string;
+  initialDate?: string;
 };
 
-export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
+export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomScheduleProps) {
   const userTimeZone = useUserTimeZone();
-  const [weekOffset, setWeekOffset] = useState(0);
+  const currentWeekStart = useMemo(
+    () => startOfOfficeWeek(DateTime.now().setZone(officeTimeZone)),
+    [officeTimeZone],
+  );
+
+  const [weekOffset, setWeekOffset] = useState(() => {
+    if (!initialDate) return 0;
+    const targetWeekStart = startOfOfficeWeek(
+      DateTime.fromISO(initialDate, { zone: officeTimeZone }),
+    );
+    return Math.round(targetWeekStart.diff(currentWeekStart, "weeks").weeks);
+  });
   const [now, setNow] = useState(() => DateTime.now().setZone(officeTimeZone));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [cancelTarget, setCancelTarget] = useState<BookingSlot | null>(null);
@@ -31,10 +43,6 @@ export function RoomSchedule({ room, officeTimeZone }: RoomScheduleProps) {
     return () => clearInterval(timer);
   }, [officeTimeZone]);
 
-  const currentWeekStart = useMemo(
-    () => startOfOfficeWeek(DateTime.now().setZone(officeTimeZone)),
-    [officeTimeZone],
-  );
   const weekStart = useMemo(
     () => currentWeekStart.plus({ weeks: weekOffset }),
     [currentWeekStart, weekOffset],
