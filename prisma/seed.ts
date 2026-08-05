@@ -1,7 +1,13 @@
 import bcrypt from "bcryptjs";
 import { DateTime } from "luxon";
-import { prisma } from "@/server/db";
-import { OFFICE_TIME_ZONE } from "@/domain/time";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../src/generated/prisma/client";
+
+// Kept self-contained (no "@/..." imports) so it only needs prisma/, node_modules
+// and this file to run inside the minimal production image, not the whole src/ tree.
+const OFFICE_TIME_ZONE = process.env.OFFICE_TIME_ZONE ?? "Europe/Kyiv";
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 const ROOMS = [
   { name: "Акваріум", floor: 1, capacity: 4 },
