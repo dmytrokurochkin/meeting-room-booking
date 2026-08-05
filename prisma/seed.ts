@@ -84,7 +84,15 @@ async function main() {
     },
   ];
 
-  await prisma.booking.createMany({ data: demoBookings });
+  for (const booking of demoBookings) {
+    try {
+      await prisma.booking.create({ data: booking });
+    } catch (error) {
+      // The target slot may already be taken by a booking created through the app
+      // (e.g. by another user testing the demo). Skip it rather than fail the seed.
+      console.warn(`Skipped demo booking "${booking.title}": slot already taken.`, error);
+    }
+  }
 
   console.log("Done.");
 }
