@@ -20,9 +20,13 @@ export function HeaderNav({ user }: HeaderNavProps) {
 
   async function handleLogout() {
     setLoggingOut(true);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
   }
 
   if (!user) {
