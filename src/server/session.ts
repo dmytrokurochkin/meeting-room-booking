@@ -24,7 +24,11 @@ export async function setSessionCookie(token: string, expiresAt: Date): Promise<
   store.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    // `secure` cookies are only stored over HTTPS (browsers special-case "localhost",
+    // but nothing else). This deployment has no TLS termination anywhere — docker
+    // compose serves plain HTTP — so gating this on NODE_ENV silently dropped the
+    // session cookie for anyone opening the app via a LAN/VPN IP instead of localhost.
+    secure: false,
     expires: expiresAt,
     path: "/",
   });
