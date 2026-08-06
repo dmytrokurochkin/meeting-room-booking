@@ -14,6 +14,7 @@ import { postJson, type ApiErrorPayload } from "@/lib/api";
 import type { BookingSlot } from "@/shared/types";
 
 const DURATION_OPTIONS_MINUTES = [30, 60, 90, 120, 150, 180, 210, 240];
+const RECURRING_WEEKS = 8;
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} хв`;
@@ -43,6 +44,7 @@ export function BookingDialog({
   const { showToast } = useToast();
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(30);
+  const [recurring, setRecurring] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -68,12 +70,20 @@ export function BookingDialog({
     const endAt = new Date(start.getTime() + duration * 60_000);
 
     try {
-      await postJson<{ booking: BookingSlot }>(`/api/rooms/${roomId}/bookings`, {
-        title,
-        startAt: start.toISOString(),
-        endAt: endAt.toISOString(),
-      });
-      showToast("Бронювання створено.");
+      await postJson<{ booking?: BookingSlot; bookings?: BookingSlot[] }>(
+        `/api/rooms/${roomId}/bookings`,
+        {
+          title,
+          startAt: start.toISOString(),
+          endAt: endAt.toISOString(),
+          recurring,
+        },
+      );
+      showToast(
+        recurring
+          ? `Бронювання створено на ${RECURRING_WEEKS} тижнів.`
+          : "Бронювання створено.",
+      );
       onCreated();
       onClose();
     } catch (error) {
@@ -121,6 +131,16 @@ export function BookingDialog({
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={recurring}
+            onChange={(event) => setRecurring(event.target.checked)}
+            className="focus-ring h-4 w-4 rounded border-border accent-accent"
+          />
+          Повторювати щотижня ({RECURRING_WEEKS} разів)
         </label>
 
         <div className="mt-2 flex justify-end gap-2">

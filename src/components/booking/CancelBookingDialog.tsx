@@ -13,6 +13,7 @@ export type CancelTarget = {
   title: string;
   startAt: string;
   endAt: string;
+  seriesId?: string | null;
 };
 
 type CancelBookingDialogProps = {
@@ -22,6 +23,8 @@ type CancelBookingDialogProps = {
   onCancelled: () => void;
 };
 
+type CancelScope = "single" | "series";
+
 export function CancelBookingDialog({
   booking,
   timeZone,
@@ -30,26 +33,27 @@ export function CancelBookingDialog({
 }: CancelBookingDialogProps) {
   const { showToast } = useToast();
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingScope, setSubmittingScope] = useState<CancelScope | null>(null);
 
   if (!booking) return null;
   const target = booking;
+  const isRecurring = Boolean(target.seriesId);
 
   const start = DateTime.fromISO(target.startAt, { zone: timeZone });
   const end = DateTime.fromISO(target.endAt, { zone: timeZone });
 
-  async function handleConfirm() {
-    setSubmitting(true);
+  async function handleConfirm(scope: CancelScope) {
+    setSubmittingScope(scope);
     setError(null);
     try {
-      await deleteJson(`/api/bookings/${target.id}`);
-      showToast("Бронювання скасовано.");
+      await deleteJson(`/api/bookings/${target.id}?scope=${scope}`);
+      showToast(scope === "series" ? "Серію бронювань скасовано." : "Бронювання скасовано.");
       onCancelled();
       onClose();
     } catch (err) {
       setError((err as ApiErrorPayload).message);
     } finally {
-      setSubmitting(false);
+      setSubmittingScope(null);
     }
   }
 
@@ -65,14 +69,33 @@ export function CancelBookingDialog({
           </p>
         </div>
 
-        <p className="text-sm text-muted">Цю дію не можна скасувати.</p>
+        <p className="text-sm text-muted">
+          {isRecurring
+            ? "Це повторюване бронювання. Цю дію не можна скасувати."
+            : "Цю дію не можна скасувати."}
+        </p>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>
             Залишити
           </Button>
-          <Button variant="danger" loading={submitting} onClick={handleConfirm}>
-            Скасувати бронювання
+          {isRecurring && (
+            <Button
+              variant="danger"
+              loading={submittingScope === "series"}
+              disabled={submittingScope === "single"}
+              onClick={() => handleConfirm("series")}
+            >
+              Скасувати всю серію
+            </Button>
+          )}
+          <Button
+            variant="danger"
+            loading={submittingScope === "single"}
+            disabled={submittingScope === "series"}
+            onClick={() => handleConfirm("single")}
+          >
+            {isRecurring ? "Скасувати тільки цю" : "Скасувати бронювання"}
           </Button>
         </div>
       </div>

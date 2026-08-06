@@ -32,6 +32,7 @@ export const GET = apiRoute(async (request) => {
     title: booking.title,
     startAt: booking.startAt.toISOString(),
     endAt: booking.endAt.toISOString(),
+    seriesId: booking.seriesId,
   }));
 
   return NextResponse.json({ bookings, hasMore });

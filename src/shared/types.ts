@@ -20,6 +20,7 @@ export type BookingSlot = {
   endAt: string;
   authorName: string;
   isMine: boolean;
+  seriesId: string | null;
 };
 
 export type MyBookingItem = {
@@ -29,4 +30,5 @@ export type MyBookingItem = {
   title: string;
   startAt: string;
   endAt: string;
+  seriesId: string | null;
 };

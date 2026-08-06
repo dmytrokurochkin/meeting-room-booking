@@ -54,8 +54,13 @@ beforeEach(async () => {
   roomId = room.id;
 
   const passwordHash = await bcrypt.hash(PASSWORD, 12);
-  await prisma.user.create({ data: { name: "User A", email: USER_A_EMAIL, passwordHash } });
-  await prisma.user.create({ data: { name: "User B", email: USER_B_EMAIL, passwordHash } });
+  const emailVerifiedAt = new Date();
+  await prisma.user.create({
+    data: { name: "User A", email: USER_A_EMAIL, passwordHash, emailVerifiedAt },
+  });
+  await prisma.user.create({
+    data: { name: "User B", email: USER_B_EMAIL, passwordHash, emailVerifiedAt },
+  });
 });
 
 afterAll(async () => {
@@ -137,6 +142,86 @@ describe("POST /api/rooms/:id/bookings", () => {
     });
 
     expect(res.status).toBe(401);
+  });
+
+  it("returns 403 when the account's email isn't verified", async () => {
+    const passwordHash = await bcrypt.hash(PASSWORD, 12);
+    const email = "unverified@test.local";
+    await prisma.user.create({ data: { name: "Unverified", email, passwordHash } });
+
+    const cookie = await login(email);
+    const res = await createBookingRequest(cookie, {
+      title: "Спроба",
+      startAt: officeTime(1, 15),
+      endAt: officeTime(1, 15, 30),
+    });
+
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error.code).toBe("EMAIL_NOT_VERIFIED");
+  });
+});
+
+describe("recurring bookings", () => {
+  it("creates 8 weekly occurrences sharing a seriesId", async () => {
+    const cookie = await login(USER_A_EMAIL);
+    const res = await createBookingRequest(cookie, {
+      title: "Щотижневий синк",
+      startAt: officeTime(0, 10),
+      endAt: officeTime(0, 10, 30),
+      recurring: true,
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.bookings).toHaveLength(8);
+    const seriesIds = new Set(body.bookings.map((b: { seriesId: string }) => b.seriesId));
+    expect(seriesIds.size).toBe(1);
+    expect([...seriesIds][0]).toBeTruthy();
+  });
+
+  it("rolls back the whole series when one occurrence conflicts", async () => {
+    const cookie = await login(USER_A_EMAIL);
+    // Pre-occupy the 3rd occurrence's slot (2 weeks out) with an unrelated booking.
+    await createBookingRequest(cookie, {
+      title: "Блокер",
+      startAt: officeTime(14, 9),
+      endAt: officeTime(14, 9, 30),
+    });
+
+    const res = await createBookingRequest(cookie, {
+      title: "Серія",
+      startAt: officeTime(0, 9),
+      endAt: officeTime(0, 9, 30),
+      recurring: true,
+    });
+
+    expect(res.status).toBe(409);
+    const remaining = await prisma.booking.count({ where: { title: "Серія" } });
+    expect(remaining).toBe(0);
+  });
+
+  it("cancelling the whole series removes all future occurrences", async () => {
+    const cookie = await login(USER_A_EMAIL);
+    const createRes = await createBookingRequest(cookie, {
+      title: "Серія для скасування",
+      startAt: officeTime(0, 11),
+      endAt: officeTime(0, 11, 30),
+      recurring: true,
+    });
+    const { bookings } = await createRes.json();
+    expect(bookings).toHaveLength(8);
+
+    const res = await fetch(`${TEST_APP_URL}/api/bookings/${bookings[0].id}?scope=series`, {
+      method: "DELETE",
+      headers: { Cookie: cookie },
+    });
+    expect(res.status).toBe(204);
+
+    const remaining = await prisma.booking.count({
+      where: { seriesId: bookings[0].seriesId },
+    });
+    expect(remaining).toBe(0);
   });
 });
 

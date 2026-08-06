@@ -6,6 +6,7 @@ import { officeSlotStart, SLOTS_PER_DAY, startOfOfficeWeek } from "@/domain/sche
 import { SLOT_MINUTES, WORK_START_HOUR } from "@/domain/time";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { RepeatIcon } from "@/components/icons";
 import { BookingDialog } from "@/components/booking/BookingDialog";
 import { CancelBookingDialog } from "@/components/booking/CancelBookingDialog";
 import { useApi } from "@/lib/use-api";
@@ -271,7 +272,10 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
                       : "cursor-default border-transparent bg-surface-secondary text-foreground"
                   }`}
                 >
-                  <p className="truncate font-medium">{booking.title}</p>
+                  <p className="flex items-center gap-1 truncate font-medium">
+                    {booking.seriesId && <RepeatIcon className="h-3 w-3 shrink-0" />}
+                    <span className="truncate">{booking.title}</span>
+                  </p>
                   <p className="truncate opacity-80">
                     {booking.isMine ? "Ви" : booking.authorName}
                   </p>

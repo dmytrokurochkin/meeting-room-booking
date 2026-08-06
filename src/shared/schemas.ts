@@ -35,6 +35,7 @@ export const createBookingSchema = z.object({
     .max(TITLE_MAX_LENGTH, `Назва не може перевищувати ${TITLE_MAX_LENGTH} символів.`),
   startAt: z.coerce.date({ error: "Вкажіть коректний час початку." }),
   endAt: z.coerce.date({ error: "Вкажіть коректний час завершення." }),
+  recurring: z.boolean().optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

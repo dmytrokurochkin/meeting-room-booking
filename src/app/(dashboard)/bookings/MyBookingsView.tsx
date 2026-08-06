@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { type KeyboardEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CancelBookingDialog, type CancelTarget } from "@/components/booking/CancelBookingDialog";
-import { CalendarIcon } from "@/components/icons";
+import { CalendarIcon, RepeatIcon } from "@/components/icons";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -48,7 +48,10 @@ function BookingRow({
       className="focus-ring flex cursor-pointer flex-col items-start gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm transition-all hover:-translate-y-px hover:border-accent hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:gap-4"
     >
       <div className="flex min-w-0 flex-col gap-0.5">
-        <p className="text-sm font-medium text-foreground">{booking.title}</p>
+        <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+          {booking.seriesId && <RepeatIcon className="h-3.5 w-3.5 shrink-0 text-muted" />}
+          {booking.title}
+        </p>
         <p className="text-sm text-muted">
           {start.setLocale("uk").toFormat("EEEE, d MMMM · HH:mm")}–{end.toFormat("HH:mm")} ·{" "}
           {booking.roomName}
