@@ -44,8 +44,15 @@ async function main() {
       const passwordHash = await bcrypt.hash(user.password, 12);
       return prisma.user.upsert({
         where: { email: user.email },
-        update: {},
-        create: { name: user.name, email: user.email, passwordHash },
+        // Seeded accounts are pre-verified: the email confirmation flow is
+        // about gating *new* registrations, not blocking the demo accounts.
+        update: { emailVerifiedAt: new Date() },
+        create: {
+          name: user.name,
+          email: user.email,
+          passwordHash,
+          emailVerifiedAt: new Date(),
+        },
       });
     }),
   );

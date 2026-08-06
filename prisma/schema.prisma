@@ -15,11 +15,26 @@ model User {
   emailVerifiedAt DateTime?
   createdAt       DateTime  @default(now())
 
-  sessions Session[]
-  bookings Booking[]
+  sessions                Session[]
+  bookings                Booking[]
+  emailVerificationTokens EmailVerificationToken[]
+  notifications           Notification[]
 }
 
 model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// sha256(token) is stored as the id, same pattern as Session: the raw token
+// only ever exists in the verification link, never in the database.
+model EmailVerificationToken {
   id        String   @id
   userId    String
   expiresAt DateTime
@@ -46,11 +61,32 @@ model Booking {
   title     String
   startAt   DateTime @db.Timestamptz(3)
   endAt     DateTime @db.Timestamptz(3)
+  seriesId  String?
   createdAt DateTime @default(now())
 
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room          Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifications Notification[]
 
   @@index([roomId, startAt])
   @@index([userId, startAt])
+  @@index([seriesId])
+}
+
+// One row per (bookingId, type). The unique constraint is what makes
+// "delivered at most once" enforceable even if the poller runs concurrently.
+model Notification {
+  id          String    @id @default(uuid())
+  userId      String
+  bookingId   String
+  type        String
+  message     String
+  createdAt   DateTime  @default(now())
+  deliveredAt DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, type])
+  @@index([userId, deliveredAt])
 }
