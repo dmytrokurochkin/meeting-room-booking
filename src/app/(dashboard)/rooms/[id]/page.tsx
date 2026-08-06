@@ -1,8 +1,7 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { OFFICE_TIME_ZONE } from "@/domain/time";
 import { getRoomById } from "@/server/services/rooms.service";
-import { getSessionUser } from "@/server/session";
-import { RoomSchedule } from "@/app/rooms/[id]/RoomSchedule";
+import { RoomSchedule } from "@/app/(dashboard)/rooms/[id]/RoomSchedule";
 
 type RoomPageProps = {
   params: Promise<{ id: string }>;
@@ -10,9 +9,6 @@ type RoomPageProps = {
 };
 
 export default async function RoomPage({ params, searchParams }: RoomPageProps) {
-  const user = await getSessionUser();
-  if (!user) redirect("/login");
-
   const { id } = await params;
   const { date } = await searchParams;
   const room = await getRoomById(id);
@@ -21,7 +17,7 @@ export default async function RoomPage({ params, searchParams }: RoomPageProps) 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">{room.name}</h1>
+        <h2 className="text-xl font-semibold text-foreground">{room.name}</h2>
         <p className="text-sm text-muted">
           {room.floor} поверх · до {room.capacity} осіб
         </p>

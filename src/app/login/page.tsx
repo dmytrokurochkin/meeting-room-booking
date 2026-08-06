@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 py-12">
+    <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-xl font-semibold text-foreground">Вхід</h1>
         <p className="text-sm text-muted">Увійдіть, щоб побачити розклад переговорних.</p>
