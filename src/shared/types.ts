@@ -9,6 +9,7 @@ export type Room = {
   name: string;
   floor: number;
   capacity: number;
+  isFreeNow?: boolean;
 };
 
 export type BookingSlot = {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BuildingIcon, UsersIcon } from "@/components/icons";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -42,31 +43,55 @@ export function RoomsBrowser() {
       {error && <ErrorBanner message={error.message} onRetry={() => mutate()} />}
 
       {!error && isLoading && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton key={index} className="h-24" />
+            <Skeleton key={index} className="h-28" />
           ))}
         </div>
       )}
 
       {!error && rooms !== null && rooms.length === 0 && (
         <EmptyState
+          icon={<BuildingIcon className="h-8 w-8" />}
           title="Кімнат не знайдено"
           description="Спробуйте обрати менший поріг місткості."
         />
       )}
 
       {!error && rooms !== null && rooms.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rooms.map((room) => (
             <Link
               key={room.id}
               href={`/rooms/${room.id}`}
-              className="focus-ring flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-accent"
+              className="focus-ring group relative flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
             >
-              <span className="font-medium text-foreground">{room.name}</span>
-              <span className="text-sm text-muted">{room.floor} поверх</span>
-              <span className="text-sm text-muted">До {room.capacity} осіб</span>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-base font-semibold text-foreground">{room.name}</span>
+                <span
+                  className="flex items-center gap-1.5 text-xs text-muted"
+                  title={room.isFreeNow ? "Вільно зараз" : "Зайнято зараз"}
+                >
+                  <span
+                    aria-hidden
+                    className={`h-2.5 w-2.5 rounded-full ${
+                      room.isFreeNow ? "bg-accent" : "bg-danger"
+                    }`}
+                  />
+                  {room.isFreeNow ? "Вільно" : "Зайнято"}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5 text-sm text-muted">
+                <span className="flex items-center gap-2">
+                  <BuildingIcon className="h-4 w-4 shrink-0 text-accent-hover" />
+                  {room.floor} поверх
+                </span>
+                <span className="flex items-center gap-2">
+                  <UsersIcon className="h-4 w-4 shrink-0 text-accent-hover" />
+                  До {room.capacity} осіб
+                </span>
+              </div>
             </Link>
           ))}
         </div>
