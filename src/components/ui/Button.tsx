@@ -1,11 +1,13 @@
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 
-type Variant = "primary" | "secondary" | "danger" | "ghost";
+type Variant = "primary" | "secondary" | "outline" | "danger" | "ghost";
 type Size = "md" | "sm";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary: "bg-accent text-accent-foreground hover:bg-accent-hover disabled:bg-accent/60",
   secondary: "bg-surface text-foreground border border-border hover:bg-background",
+  outline:
+    "bg-transparent text-accent border border-accent/50 hover:border-accent hover:bg-accent/10",
   danger: "bg-danger text-white hover:opacity-90 disabled:opacity-60",
   ghost: "text-foreground hover:bg-background",
 };

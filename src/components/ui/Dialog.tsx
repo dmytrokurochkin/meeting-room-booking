@@ -27,7 +27,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
       onClick={(event) => {
         if (event.target === ref.current) onClose();
       }}
-      className="w-full max-w-md rounded-xl border border-border bg-surface p-0 text-foreground shadow-lg backdrop:bg-slate-900/40"
+      className="w-full max-w-md rounded-xl border border-border bg-surface p-0 text-foreground shadow-lg backdrop:bg-black/60"
     >
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <h2 className="text-base font-semibold">{title}</h2>
