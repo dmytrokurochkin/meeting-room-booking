@@ -202,7 +202,7 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
               <div
                 key={day.toISODate()}
                 className={`sticky top-0 z-10 border-b border-border px-2 py-2 text-center text-sm font-medium ${
-                  day.hasSame(now, "day") ? "bg-accent/10 text-accent" : "bg-surface text-foreground"
+                  day.hasSame(now, "day") ? "bg-accent/15 text-accent" : "bg-surface text-foreground"
                 }`}
                 style={{ gridColumn: colOf(dayIndex), gridRow: 1 }}
               >
@@ -236,9 +236,9 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
                   disabled={isPast}
                   onClick={() => setSelectedSlot(slot.toJSDate())}
                   aria-label={`Забронювати ${slot.setZone(userTimeZone).toFormat("EEEE HH:mm", { locale: "uk" })}`}
-                  className={`focus-ring m-0 h-full w-full appearance-none border-0 border-b border-border bg-transparent p-0 text-left ${
-                    day.hasSame(now, "day") ? "bg-accent/5" : ""
-                  } ${isPast ? "cursor-default" : "cursor-pointer hover:bg-accent/10"}`}
+                  className={`focus-ring m-0 h-full w-full appearance-none border-0 border-b border-border bg-transparent p-0 text-left transition-colors ${
+                    day.hasSame(now, "day") ? "bg-accent/8" : ""
+                  } ${isPast ? "cursor-default" : "cursor-pointer hover:bg-accent/15"}`}
                   style={{ gridColumn: colOf(dayIndex), gridRow: slotIndex + 2 }}
                 />
               );
@@ -265,10 +265,10 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
                   disabled={!booking.isMine}
                   onClick={() => setCancelTarget(booking)}
                   style={{ gridColumn: colOf(dayIndex), gridRow: `${startRow + 2} / span ${span}` }}
-                  className={`focus-ring m-0.5 overflow-hidden rounded-md border px-2 py-1 text-left text-xs ${
+                  className={`focus-ring m-0.5 overflow-hidden rounded-lg border px-2 py-1 text-left text-xs shadow-sm transition-all ${
                     booking.isMine
-                      ? "cursor-pointer border-transparent bg-accent text-accent-foreground hover:opacity-90"
-                      : "cursor-default border-border bg-background text-foreground"
+                      ? "cursor-pointer border-transparent bg-accent text-accent-foreground hover:-translate-y-px hover:shadow-md"
+                      : "cursor-default border-transparent bg-surface-secondary text-foreground"
                   }`}
                 >
                   <p className="truncate font-medium">{booking.title}</p>
@@ -289,8 +289,8 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
                 className="absolute inset-x-0 flex items-center"
                 style={{ top: `${nowSlotFraction * 100}%` }}
               >
-                <span className="-ml-1 h-2 w-2 rounded-full bg-danger" />
-                <span className="h-px flex-1 bg-danger" />
+                <span className="-ml-1 h-2 w-2 rounded-full bg-accent" />
+                <span className="h-px flex-1 bg-accent" />
               </div>
             </div>
           )}
