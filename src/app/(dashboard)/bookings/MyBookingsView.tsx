@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type KeyboardEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CancelBookingDialog, type CancelTarget } from "@/components/booking/CancelBookingDialog";
+import { CalendarIcon } from "@/components/icons";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -44,7 +45,7 @@ function BookingRow({
       tabIndex={0}
       onClick={goToRoom}
       onKeyDown={handleKeyDown}
-      className="focus-ring flex cursor-pointer flex-col items-start gap-2 rounded-lg border border-border bg-surface px-4 py-3 hover:border-accent sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+      className="focus-ring flex cursor-pointer flex-col items-start gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm transition-all hover:-translate-y-px hover:border-accent hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:gap-4"
     >
       <div className="flex min-w-0 flex-col gap-0.5">
         <p className="text-sm font-medium text-foreground">{booking.title}</p>
@@ -55,7 +56,7 @@ function BookingRow({
       </div>
       {onCancel && (
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
           className="shrink-0"
           onClick={(event) => {
@@ -155,7 +156,8 @@ export function MyBookingsView() {
 
           {!upcomingError && !upcomingLoading && upcomingData?.bookings.length === 0 && (
             <EmptyState
-              title="Немає майбутніх бронювань"
+              icon={<CalendarIcon className="h-8 w-8" />}
+              title="У вас ще немає бронювань"
               description="Оберіть кімнату і забронюйте вільний час."
               action={
                 <Link href="/rooms">
@@ -190,7 +192,10 @@ export function MyBookingsView() {
           )}
 
           {!pastError && pastLoaded && pastItems.length === 0 && (
-            <EmptyState title="Немає минулих бронювань" />
+            <EmptyState
+              icon={<CalendarIcon className="h-8 w-8" />}
+              title="У вас ще немає минулих бронювань"
+            />
           )}
 
           {pastItems.map((booking) => (
