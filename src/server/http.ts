@@ -14,6 +14,8 @@ export type ApiErrorCode =
   | "TOO_SHORT"
   | "TOO_LONG"
   | "NOT_SLOT_ALIGNED"
+  | "EMAIL_NOT_VERIFIED"
+  | "INVALID_TOKEN"
   | "INTERNAL_ERROR";
 
 const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
@@ -29,6 +31,8 @@ const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   TOO_SHORT: 422,
   TOO_LONG: 422,
   NOT_SLOT_ALIGNED: 422,
+  EMAIL_NOT_VERIFIED: 403,
+  INVALID_TOKEN: 400,
   INTERNAL_ERROR: 500,
 };
 

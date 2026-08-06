@@ -1,19 +1,15 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/server/db";
 import { ApiError } from "@/server/http";
+import { generateToken, hashToken } from "@/server/tokens";
 import type { User } from "@/generated/prisma/client";
 
 export const SESSION_COOKIE_NAME = "sid";
 const SESSION_DURATION_DAYS = 30;
 
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
-
 export async function createSession(userId: string): Promise<{ token: string; expiresAt: Date }> {
-  const token = randomBytes(32).toString("base64url");
+  const token = generateToken();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000);
   await prisma.session.create({ data: { id: hashToken(token), userId, expiresAt } });
   return { token, expiresAt };
@@ -25,9 +21,9 @@ export async function setSessionCookie(token: string, expiresAt: Date): Promise<
     httpOnly: true,
     sameSite: "lax",
     // `secure` cookies are only stored over HTTPS (browsers special-case "localhost",
-    // but nothing else). This deployment has no TLS termination anywhere — docker
-    // compose serves plain HTTP — so gating this on NODE_ENV silently dropped the
-    // session cookie for anyone opening the app via a LAN/VPN IP instead of localhost.
+    // but nothing else). This deployment has no TLS termination anywhere, docker compose
+    // just serves plain HTTP, so gating this on NODE_ENV silently dropped the session
+    // cookie for anyone opening the app via a LAN/VPN IP instead of localhost.
     secure: false,
     expires: expiresAt,
     path: "/",

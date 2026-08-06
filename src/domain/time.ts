@@ -5,6 +5,7 @@ export const OFFICE_TIME_ZONE = process.env.OFFICE_TIME_ZONE ?? "Europe/Kyiv";
 export const WORK_START_HOUR = 9;
 export const WORK_END_HOUR = 19;
 export const SLOT_MINUTES = 30;
+export const NOTIFY_BEFORE_MINUTES = Number(process.env.NOTIFY_BEFORE_MINUTES) || 10;
 
 export function isSlotAligned(date: Date, zone: string = OFFICE_TIME_ZONE): boolean {
   const local = DateTime.fromJSDate(date, { zone });
