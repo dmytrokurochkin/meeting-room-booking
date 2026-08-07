@@ -107,11 +107,21 @@ export function RoomSchedule({ room, officeTimeZone, initialDate }: RoomSchedule
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setWeekOffset((value) => value - 1)}>
-            ← Попередній тиждень
+          <Button
+            variant="secondary"
+            size="sm"
+            className="whitespace-nowrap"
+            onClick={() => setWeekOffset((value) => value - 1)}
+          >
+            {isMobile ? "← Тиждень" : "← Попередній тиждень"}
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => setWeekOffset((value) => value + 1)}>
-            Наступний тиждень →
+          <Button
+            variant="secondary"
+            size="sm"
+            className="whitespace-nowrap"
+            onClick={() => setWeekOffset((value) => value + 1)}
+          >
+            {isMobile ? "Тиждень →" : "Наступний тиждень →"}
           </Button>
           {weekOffset !== 0 && (
             <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)}>
