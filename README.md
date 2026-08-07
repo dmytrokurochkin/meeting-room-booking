@@ -24,6 +24,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
+У Windows `cmd.exe` немає команди `cp` — скопіюйте файл вручну або виконайте `copy .env.example .env`.
+
 Застосунок підніметься на [http://localhost:3000](http://localhost:3000). Контейнер `app` сам застосує міграції та накотить сіди при старті.
 
 ## Запуск локально
@@ -31,7 +33,7 @@ docker compose up --build
 Потрібні Node.js 20+ і локальний PostgreSQL (або Postgres, піднятий окремо через `docker compose up -d postgres`).
 
 ```bash
-cp .env.example .env       # за потреби відредагуйте DATABASE_URL
+cp .env.example .env       # за потреби відредагуйте DATABASE_URL; у cmd.exe — copy .env.example .env
 npm install
 npm run db:migrate          # застосувати міграції
 npm run db:seed             # накотити сіди
